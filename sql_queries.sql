@@ -1,4 +1,7 @@
---Selecting first 5 rows using limit in BigQuery
+**DISCLAIMER**
+--Here queries are used in Google Bigquery instead of SQL Server Management Studio, so the queries are slightly different than the regular SQL server queries!
+
+--Selecting the first 5 rows using the limit in BigQuery
 SELECT * 
 FROM `propane-choir-395311.Superstore_sales.raw_data` LIMIT 5;
 
@@ -179,7 +182,7 @@ FROM `Superstore_sales.raw_data`
 group by Segment
 order by total_profit DESC;
 
---10. How many customer in total and how much per region and state?
+--10. How many customers are in total and how much per region and state?
 
 SELECT COUNT(distinct customer_id) AS total_customers
 FROM `Superstore_sales.raw_data`;
