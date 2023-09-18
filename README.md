@@ -121,7 +121,8 @@ ORDER BY quarter;
 ```
 >This query gives us the following results:
 
-![2a](media/2a.png)\
+![2a](media/2a.png)
+
 *Quarters performance from 2014–2017*
 
 The result above shows that the period of October, November, and December are the best-selling months with the most profit.
