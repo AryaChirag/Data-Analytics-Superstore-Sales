@@ -21,7 +21,7 @@ The other part of this dynamic Dashboard based upon the top 5 Customers, Product
 
 ![Dashboard2](Media/top5Dashboard%20.png)
 
-Click [here](https://public.tableau.com/app/profile/usama.zafar.qureshi/viz/Top5saleresult/top5Dashboard?publish=yes) for above tableau dashboard.
+Click [here](https://public.tableau.com/app/profile/usama.zafar.qureshi/viz/Top5saleresult/top5Dashboard?publish=yes) for the above tableau dashboard.
 
 ## Data Processing
 
@@ -33,11 +33,13 @@ Data will be processed and cleaned with the help of Excel by observing:
 ## Analysis Approach
 
 The following set of questions and topics will be stringed out from the data.\
-Let’s load data into SQL and check the first 5 rows to make sure it is imported well.
+Let’s load data into Google Big Query and check the first 5 rows to make sure it is imported well.
+
+In the following code 'Propane-choir-395311' is the user profile, 'Superstore_sales' is the dataset name, and 'raw_data' is the table name.
 
 ```SQL
-Select TOP 5 *
-FROM Superstore
+SELECT * 
+FROM `propane-choir-395311.Superstore_sales.raw_data` LIMIT 5;
 ```
 ### 1. What are the total sales and total profits of each year?
 
@@ -45,25 +47,26 @@ First create a year column from Date, which will be further used in the analysis
 > To create a new column for the year
 
 ``` SQL
-SELECT DATEPART(YEAR, Order_Date) AS year
-FROM Superstore
+SELECT EXTRACT(Year From Order_Date) As year
+FROM `Superstore_sales.raw_data`;
 
-ALTER TABLE Superstore
-ADD year INT
+ALTER TABLE `Superstore_sales.raw_data`
+ADD COLUMN year INT;
 
-UPDATE Superstore
-SET year = DATEPART(YEAR, Order_Date)
+UPDATE `Superstore_sales.raw_data`
+SET year = EXTRACT(YEAR FROM Order_Date)
+WHERE true;
 ```
 > To find the total sales and profit in each year
 ```SQL
-SELECT year, SUM(sales) AS total_sales , SUM(profit) AS total_profit
-FROM Superstore
+SELECT year, ROUND(SUM(Sales),3) AS total_sales, ROUND(SUM(profit),3) AS total_profit
+FROM `propane-choir-395311.Superstore_sales.raw_data`
 GROUP BY year
-ORDER BY year ASC
+ORDER BY year ASC;
 ```
 This query produced the following result:
 
-![](media/1.png)
+![1](media/1.png)
 
 The data above shows how the profits over the years have steadily increased with each proceeding year being more profitable than the other despite having a fall in sales in 2015.
 
@@ -72,47 +75,54 @@ The data above shows how the profits over the years have steadily increased with
 >To create a new column for the quarter
 
 ``` SQL
-SELECT year, 
-CASE
-WHEN DATEPART(month , Order_Date) IN (1,2,3) THEN 'Q1'
-WHEN DATEPART(month , Order_Date) IN (4,5,6) THEN 'Q2'
-WHEN DATEPART(month , Order_Date) IN (7,8,9) THEN 'Q3'
-ELSE 'Q4'
-END AS quarter
-FROM Superstore
-Order by year
+SELECT
+  year,
+  CASE
+    WHEN EXTRACT(MONTH FROM Order_Date) IN (1, 2, 3) THEN 'Q1'
+    WHEN EXTRACT(MONTH FROM Order_Date) IN (4, 5, 6) THEN 'Q2'
+    WHEN EXTRACT(MONTH FROM Order_Date) IN (7, 8, 9) THEN 'Q3'
+    ELSE 'Q4'
+  END AS quarter
+FROM
+  `propane-choir-395311.Superstore_sales.raw_data`
+ORDER BY
+  year;
 
-ALTER TABLE Superstore
-ADD quarter Varchar(10)
+ALTER TABLE `Superstore_sales.raw_data`
+ADD COLUMN quarter STRING;
 
-UPDATE Superstore
-SET quarter = CASE
-WHEN DATEPART(month , Order_Date) IN (1,2,3) THEN 'Q1'
-WHEN DATEPART(month , Order_Date) IN (4,5,6) THEN 'Q2'
-WHEN DATEPART(month , Order_Date) IN (7,8,9) THEN 'Q3'
-ELSE 'Q4'
+UPDATE `Superstore_sales.raw_data`
+SET quarter = CASE 
+  WHEN EXTRACT(MONTH FROM Order_Date) IN (1, 2, 3) THEN 'Q1'
+  WHEN EXTRACT(MONTH FROM Order_Date) IN (4, 5, 6) THEN 'Q2'
+  WHEN EXTRACT(MONTH FROM Order_Date) IN (7, 8, 9) THEN 'Q3'
+  ELSE 'Q4'
 END
+WHERE true;
 ```
 
 > To find the total sales and profit in each quarter
 ```SQL
-SELECT year, quarter ,SUM(sales) AS total_sales , SUM (profit) as total_profit
-FROM Superstore
+SELECT year, quarter, ROUND(sum(sales),3) AS total_sales, ROUND(SUM(profit),3) as total_profit
+FROM `propane-choir-395311.Superstore_sales.raw_data`
 GROUP BY year, quarter
-ORDER BY year, quarter
+ORDER BY year, quarter;
 ```
 This query produced the following result:
 
 ![2](media/2.png)\
 
->Computing the table above through Excel gives us the following:
+> To find the quarters performance from 2014-2017
+```SQL
+SELECT quarter AS Quarters_2014_2017, ROUND(SUM(sales),3) AS Total_sales, ROUND(SUM(profit),3) as total_profit
+FROM `propane-choir-395311.Superstore_sales.raw_data`
+GROUP BY quarter
+ORDER BY quarter;
+```
+>This query gives us the following results:
 
 ![2a](media/2a.png)\
 *Quarters performance from 2014–2017*
-
-  <!-- <img src = media\2a.png alt ="performance">
-  <figcaption> Quarters performance from 2014–2017
-  </figcaption> -->
 
 The result above shows that the period of October, November, and December are the best-selling months with the most profit.
 
@@ -121,10 +131,10 @@ The result above shows that the period of October, November, and December are th
 >To find the total sales and profit with respect to the region
 
 ```SQL
-SELECT region, SUM(sales) AS total_sales , SUM(profit) AS total_profit
-FROM Superstore
+SELECT region, ROUND(sum(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM Superstore_sales.raw_data
 GROUP BY region
-ORDER BY total_profit DESC
+ORDER BY total_profit DESC;
 ```
 This query produced the following result:
 
@@ -135,10 +145,10 @@ It can be observed that the West region is the one with the most sales and bring
 > Let’s observe each region's profit margins for further analysis with the following code:
 
 ``` SQL
-SELECT region, ROUND((SUM(profit) / sum(sales)) * 100,2) AS profit_margin
-FROM Superstore
+SELECT region, ROUND((SUM(profit)/sum(sales))*100,2) AS profit_margin
+FROM Superstore_sales.raw_data
 GROUP BY region
-ORDER BY profit_margin DESC
+ORDER BY profit_margin DESC;
 ```
 This query produced the following result:
 
@@ -155,10 +165,12 @@ Which states are the top and bottom 10 in terms of total sales, profit, and prof
 > For top 10 states, it can be found with the following code:
 
 ``` SQL
-SELECT TOP 10 State , SUM(sales) AS total_sales , SUM (profit) as total_profit ,  ROUND((SUM(profit) / sum(sales)) * 100,2) AS profit_margin
-FROM Superstore
+SELECT state, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit,
+  ROUND((SUM(profit)/sum(sales))*100,2) AS profit_margin
+FROM Superstore_sales.raw_data
 GROUP BY State
-ORDER BY Total_Profit DESC
+ORDER BY total_profit DESC
+LIMIT 10;
 ```
 
 This query produced the following result:
@@ -168,10 +180,12 @@ This query produced the following result:
 > For the bottom 10 states, it can be found with the following code:
 
 ``` SQL
-SELECT TOP 10 State , SUM(sales) AS total_sales , SUM (profit) as total_profit ,  ROUND((SUM(profit) / sum(sales)) * 100,2) AS profit_margin
-FROM Superstore
+SELECT state, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit,
+  ROUND((SUM(profit)/sum(sales))*100,2) AS profit_margin
+FROM Superstore_sales.raw_data
 GROUP BY State
-ORDER BY Total_Profit ASC
+ORDER BY total_profit ASC
+LIMIT 10;
 ```
 
 This query produced the following result:
@@ -187,10 +201,12 @@ Which cities are the top and bottom 10 in terms of total sales, profit, and prof
 > For top 10 cities, it can be found with the following code:
 
 ``` SQL
-SELECT TOP 10 City , SUM(sales) AS total_sales , SUM (profit) as total_profit ,  ROUND((SUM(profit) / sum(sales)) * 100,2) AS profit_margin
-FROM Superstore
-GROUP BY City
-ORDER BY Total_Profit DESC
+SELECT city, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit,
+  ROUND((SUM(profit)/sum(sales))*100,2) AS profit_margin
+FROM Superstore_sales.raw_data
+GROUP BY city
+ORDER BY total_profit DESC
+LIMIT 10;
 ```
 
 This query produced the following result:
@@ -202,10 +218,12 @@ The top 3 cities that we should focus on are New York City, Los Angeles, and Sea
 > For bottom 10 cities, it can be found with the following code:
 
 ``` SQL
-SELECT TOP 10 City , SUM(sales) AS total_sales , SUM (profit) as total_profit ,  ROUND((SUM(profit) / sum(sales)) * 100,2) AS profit_margin
-FROM Superstore
-GROUP BY City
-ORDER BY Total_Profit ASC
+SELECT City, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit,
+  ROUND((SUM(profit)/sum(sales))*100,2) AS profit_margin
+FROM Superstore_sales.raw_data
+GROUP BY city
+ORDER BY total_profit ASC
+LIMIT 10;
 ```
 
 This query produced the following result:
@@ -219,10 +237,10 @@ The bottom 3 are Philadelphia, Houston, and San Antonio.
 > For observing the correlation between discount and average sales.
 
 ```SQL
-SELECT discount, AVG(sales) AS avg_sales
-FROM Superstore
+SELECT CONCAT(ROUND(discount * 100),'%') AS discount, ROUND(avg(sales),3) AS avg_sales
+FROM Superstore_sales.raw_data
 GROUP BY discount
-ORDER BY discount
+ORDER BY discount;
 ```
 
 This query produced the following result:
@@ -234,10 +252,10 @@ Seems that for each discount point, the average sales seem to vary a lot.
 > To find the highest discount rate for average sales
 
 ```SQL
-SELECT discount, AVG(sales) AS avg_sales
-FROM Superstore
+SELECT CONCAT(ROUND(discount * 100),'%') AS discount, ROUND(avg(sales),3) AS avg_sales
+FROM Superstore_sales.raw_data
 GROUP BY discount
-ORDER BY avg_sales DESC
+ORDER BY avg_sales DESC;
 ```
 This query produced the following result:
 
@@ -248,10 +266,10 @@ They almost have no linear relationship. However, it is at least observed that a
 > For observing the total discount per product category.
 
 ```SQL
-SELECT category, MAX(discount) AS total_discount
-FROM Superstore
-GROUP BY category
-ORDER BY total_discount DESC
+SELECT category, CONCAT(ROUND(MAX(discount)*100), '%') AS total_discount
+FROM `Superstore_sales.raw_data`
+group by Category
+order by total_discount DESC;
 ```
 This query produced the following result:
 
@@ -262,10 +280,10 @@ So Office supplies are the most discounted items followed by Furniture and Techn
 > To zoom in the category section to see exactly what type of products are the most discounted.
 
 ```SQL
-SELECT category, sub_category, MAX(discount) AS total_discount
-FROM Superstore
-GROUP BY category, sub_category
-ORDER BY total_discount DESC
+SELECT category, Sub_Category, CONCAT(ROUND(MAX(discount)*100), '%') AS total_discount
+FROM `Superstore_sales.raw_data`
+group by Category, Sub_Category
+order by total_discount DESC;
 ```
 This query produced the following result:
 
@@ -278,10 +296,10 @@ Binders, Phones, and Furnishings are the most discounted items.
 > To observe the total sales and total profits of each category with their profit margins:
 
 ```SQL
-SELECT category, SUM(sales) AS total_sales, SUM(profit) AS total_profit, ROUND(SUM(profit)/SUM(sales)*100, 2) AS profit_margin
-FROM Superstore
-GROUP BY category
-ORDER BY total_profit DESC
+SELECT category, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit, ROUND(sum(profit)/sum(sales)*100,2) AS profit_margin
+FROM `Superstore_sales.raw_data`
+GROUP BY Category
+ORDER BY total_profit DESC;
 ```
 This query produced the following result:
 
@@ -292,10 +310,10 @@ Out of the 3, it is clear that Technology and Office Supplies are the best in te
 > To observe the highest total sales and total profits per Category in each region:
 
 ```SQL
-SELECT region, category, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM superstore
-GROUP BY region, category
-ORDER BY total_profit DESC
+SELECT  Region, Category, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM `Superstore_sales.raw_data`
+GROUP BY region, Category
+ORDER BY total_profit DESC;
 ```
 This query produced the following result:
 
@@ -306,9 +324,10 @@ These are the best categories in terms of total profits in each region. The West
 > To see the highest total sales and total profits per Category in each state:
 
 ```SQL
-SELECT state, category, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM Superstore
-GROUP BY state, category
+SELECT  State, Category, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM `Superstore_sales.raw_data`
+GROUP BY State, Category
+ORDER BY total_profit DESC;
 ```
 This query produced the following result:
 
@@ -319,10 +338,10 @@ The table above shows the highest-performing categories in each state. Technolog
 ### 7. What subcategory generates the highest sales and profits in each region and state?
 > To observe the total sales and total profits of each subcategory with their profit margins:
 ```SQL
-SELECT sub_category, SUM(sales) AS total_sales, SUM(profit) AS total_profit, ROUND(SUM(profit)/SUM(sales)*100, 2) AS profit_margin
-FROM Superstore
-GROUP BY sub_category
-ORDER BY total_profit DESC
+SELECT sub_category, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit, round(sum(profit)/sum(sales)*100,2) AS profit_margin
+FROM `Superstore_sales.raw_data`
+group by Sub_Category
+order by total_profit DESC;
 ```
 
 This query produced the following result:
@@ -334,10 +353,10 @@ Out of a total of 17 subcategories nationwide, the biggest profits come from Cop
 > To see the highest total sales and total profits per subcategory in each region:
 
 ```SQL
-SELECT region, sub_category, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM Superstore
-GROUP BY region, sub_category
-ORDER BY total_profit DESC
+SELECT region, sub_category, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM `Superstore_sales.raw_data`
+group by region, Sub_Category
+order by total_profit DESC;
 ```
 This query produced the following result:
 
@@ -348,10 +367,10 @@ The above displays the best subcategories per region.
 > To see the highest total sales and total profits per subcategory in each state:
 
 ```SQL
-SELECT state, sub_category, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM Superstore
-GROUP BY state, sub_category
-ORDER BY total_profit DESC
+SELECT State, sub_category, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM `Superstore_sales.raw_data`
+group by State, Sub_Category
+order by total_profit DESC;
 ```
 This query produced the following result:
 
@@ -364,10 +383,10 @@ Machines, Phones, and Binders perform very well in New York. Followed by Accesso
 > To get the most profitable products, the following query is made:
 
 ```SQL
-SELECT product_name, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM Superstore
-GROUP BY product_name
-ORDER BY total_profit DESC
+SELECT product_name, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM `Superstore_sales.raw_data`
+group by Product_Name
+order by total_profit DESC;
 ```
 This query produces the following results:
 
@@ -378,11 +397,11 @@ These Copiers, Machines, and Printers are definitely the main foundations of pro
 > To get the least profitable products, the following query is made:
 
 ```SQL
-SELECT product_name, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM Superstore
-WHERE profit IS NOT NULL
-GROUP BY product_name
-ORDER BY total_profit ASC
+SELECT product_name, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM `Superstore_sales.raw_data`
+WHERE Profit IS NOT NULL
+group by Product_Name
+order by total_profit ASC;
 ```
 This query produces the following results:
 
@@ -395,10 +414,10 @@ The Cubify CubeX 3D Printer Double Head Print, Lexmark MX611dhe Monochrome Laser
 > This can be verified with the help of the following query:
 
 ```SQL
-SELECT segment, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM Superstore
-GROUP BY segment
-ORDER BY total_profit DESC
+SELECT segment, ROUND(SUM(sales),3) AS total_sales, ROUND(sum(profit),3) AS total_profit
+FROM `Superstore_sales.raw_data`
+group by Segment
+order by total_profit DESC;
 ```
 
 The above query produces the following results:
@@ -412,8 +431,8 @@ The consumer segment brings in the most profit followed by the Corporate and the
 > Total number of customers can be found by:
 
 ```SQL
-SELECT COUNT(DISTINCT customer_id) AS total_customers
-FROM Superstore
+SELECT COUNT(distinct customer_id) AS total_customers
+FROM `Superstore_sales.raw_data`;
 ```
 The above query produces the following results:
 
@@ -424,10 +443,10 @@ The company had 793 customers between 2014 and 2017.
 > Total number of customers based on region:
 
 ```SQL
-SELECT region, COUNT(DISTINCT customer_id) AS total_customers
-FROM Superstore
-GROUP BY region
-ORDER BY total_customers DESC
+SELECT Region, count(distinct Customer_ID) AS total_customers
+FROM `Superstore_sales.raw_data`
+group by Region
+order by total_customers DESC;
 ```
 The above query produces the following results:
 
@@ -438,10 +457,10 @@ The company had customers moving around regions which explains why they all do n
 > Total number of customers based upon state:
 
 ```SQL
-SELECT state, COUNT(DISTINCT customer_id) AS total_customers
-FROM Superstore
-GROUP BY state
-ORDER BY total_customers DESC
+SELECT State, count(distinct Customer_ID) AS total_customers
+FROM `Superstore_sales.raw_data`
+group by State
+order by total_customers DESC;
 ```
 The above query produces the following results:
 
@@ -456,10 +475,11 @@ To build a loyalty and rewards program in the future. What customers spent the m
 > To check the customers with the most business and profit with the company:
 
 ```SQL
-SELECT TOP 15 customer_Id, SUM(sales) AS total_sales, SUM(profit) AS total_profit
-FROM superstore
-GROUP BY customer_id
-ORDER BY total_sales DESC
+SELECT Customer_ID, ROUND(SUM(sales),2) AS total_sales, ROUND(SUM(Profit), 2) AS total_profit
+FROM `Superstore_sales.raw_data` 
+group by Customer_ID
+order by total_sales DESC
+LIMIT 15;
 ```
 The above query produces the following results:
 
@@ -472,8 +492,9 @@ The display of the customer names is on file but showing the unique customer ID 
 > To find the average shipping time regardless of the shipping mode:
 
 ```SQL
-SELECT TOP 1 DATEDIFF (day, order_date, ship_date) AS avg_shipping_time
-FROM Superstore
+SELECT DATE_DIFF(ship_date, order_date, DAY) AS avg_shipping_time
+FROM `Superstore_sales.raw_data`
+LIMIT 1;
 ```
 
 The above query produces the following results:
@@ -483,10 +504,10 @@ The above query produces the following results:
 > To find the shipping time in each shipping mode:
 
 ```SQL
-SELECT ship_mode , avg(DATEDIFF(day, order_date, ship_date)) AS avg_shipping_time
-FROM Superstore
-GROUP BY ship_mode
-ORDER BY avg_shipping_time
+SELECT Ship_Mode, CAST(avg(DATE_DIFF(Ship_Date, Order_Date, DAY)) AS INT64) AS avg_shipping_time
+FROM `Superstore_sales.raw_data`
+GROUP BY Ship_Mode
+ORDER BY avg_shipping_time;
 ```
 The above query produces the following results:
 
