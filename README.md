@@ -110,7 +110,7 @@ ORDER BY year, quarter;
 ```
 This query produced the following result:
 
-![2](media/2.png)\
+![2](media/2.png)
 
 > To find the quarters performance from 2014-2017
 ```SQL
