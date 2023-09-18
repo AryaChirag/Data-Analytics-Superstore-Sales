@@ -5,6 +5,9 @@
 SELECT * 
 FROM `propane-choir-395311.Superstore_sales.raw_data` LIMIT 5;
 
+--In the following queries 'Propane-choir-395311' shall be replaced with your own user profile
+-- and 'Superstore_sales' shall be replaced with your dataset name and 'raw_data' with your table name.
+
 --1. Total sales and total profits of each year
 SELECT EXTRACT(Year From Order_Date) As year
 FROM `propane-choir-395311.Superstore_sales.raw_data`;
