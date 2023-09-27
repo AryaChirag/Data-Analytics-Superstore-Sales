@@ -15,13 +15,13 @@ The interactive Dashboard based upon Yearly and Quarterly sales aspects from 201
 
 ![Dashboard](media/dashboard.png)
 
-Click [here](https://public.tableau.com/app/profile/usama.zafar.qureshi/viz/SuperstoreData_16929735714910/yearly?publish=yes) for interactive tableau dashboard.
+Click [here](https://public.tableau.com/app/profile/chirag.arya4385/viz/SuperstoreDashboard_16958486880750/SuperstoreDashboard?publish=yes) for interactive tableau dashboard.
 
 The other part of this dynamic Dashboard based upon the top 5 Customers, Products, and Cities in terms of total sales from 2014-2017 of collected data is shown in the image below with a subsequent link:
 
 ![Dashboard2](Media/top5Dashboard%20.png)
 
-Click [here](https://public.tableau.com/app/profile/usama.zafar.qureshi/viz/Top5saleresult/top5Dashboard?publish=yes) for the above tableau dashboard.
+Click [here](https://public.tableau.com/app/profile/chirag.arya4385/viz/Top5saleresults/Top5saleresults?publish=yes) for the above tableau dashboard.
 
 ## Data Processing
 
