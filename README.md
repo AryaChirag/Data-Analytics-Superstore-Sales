@@ -13,13 +13,13 @@ The purpose of this project is to identify the patterns in products, regions, ca
 
 The interactive Dashboard based upon Yearly and Quarterly sales aspects from 2014-2017 of collected data is shown in the image below while the subsequent link is also attached:
 
-![Dashboard](media/dashboard.png)
+![Dashboard](media/Superstore_Dashboard.png)
 
 Click [here](https://public.tableau.com/app/profile/chirag.arya4385/viz/SuperstoreDashboard_16958486880750/SuperstoreDashboard?publish=yes) for interactive tableau dashboard.
 
 The other part of this dynamic Dashboard based upon the top 5 Customers, Products, and Cities in terms of total sales from 2014-2017 of collected data is shown in the image below with a subsequent link:
 
-![Dashboard2](Media/top5Dashboard%20.png)
+![Dashboard2](media/Top_5_sale_results.png)
 
 Click [here](https://public.tableau.com/app/profile/chirag.arya4385/viz/Top5saleresults/Top5saleresults?publish=yes) for the above tableau dashboard.
 
