@@ -524,7 +524,7 @@ The datasets used:
 + The data is publicly available through Kaggle under https://www.kaggle.com/datasets/vivek468/superstore-dataset-final
 
 ## Built with
-+ Google Bigquery\
++ Google Bigquery
 + Tableau
 
 ## Authors
